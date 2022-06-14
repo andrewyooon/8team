@@ -1,4 +1,4 @@
-/**********************************************************************
+﻿/**********************************************************************
  * File:        linlsq.cpp  (Formerly llsq.c)
  * Description: Linear Least squares fitting code.
  * Author:		Ray Smith
