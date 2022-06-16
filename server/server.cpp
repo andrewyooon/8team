@@ -6,19 +6,56 @@
 #include "NetworkTCP.h"
 #include <Windows.h>
 #include <db.h> 
+#if defined(_USE_MQTT_)
+#include "mqtt.h"
+#include <thread>
+
+mqtt _mqtt{};
+#endif
+
+DB* dbp; /* DB structure handle */
+
+bool lookupDB(char* PlateString, DBT& data)
+{
+  char DBRecord[2048]{};
+  DBT key;
+  
+  /* Zero out the DBTs before using them. */
+  memset(&key, 0, sizeof(DBT));
+  memset(&data, 0, sizeof(DBT));
+  key.data = PlateString;
+  key.size = (u_int32_t)(strlen(PlateString) + 1);
+  data.data = DBRecord;
+  data.ulen = sizeof(DBRecord);
+  data.flags = DB_DBT_USERMEM;
+  return dbp->get(dbp, NULL, &key, &data, 0) != DB_NOTFOUND;
+}
+
+void processPlateQuery(void* msgBuf, int msgLen)
+{
+  char* PlateString = reinterpret_cast<char*>(msgBuf);
+  printf("Plate is : %s\n", PlateString);
+
+  if (DBT data; lookupDB(PlateString, data))
+  {
+    int sendlength = (int)(strlen((char*)data.data) + 1);
+    _mqtt.publish("ALPR_TOPIC", (unsigned char*)data.data, sendlength, 0);
+    printf("sent ->%s\n", (char*)data.data);
+  }
+}
 
 int main()
 {
+#if !defined(_USE_MQTT_)
     TTcpListenPort* TcpListenPort;
     TTcpConnectedPort* TcpConnectedPort;
     struct sockaddr_in cli_addr;
     socklen_t          clilen;
+#endif
     bool NeedStringLength = true;
     unsigned short PlateStringLength;
     char PlateString[1024];
-    char DBRecord[2048];
-    DBT key, data;
-    DB* dbp; /* DB structure handle */
+    
     u_int32_t flags; /* database open flags */
     int ret; /* function return value */
     ssize_t result;
@@ -49,6 +86,18 @@ int main()
         return -1;
     }
 
+#if defined(_USE_MQTT_)
+    _mqtt.secure(false, "./rootca.crt", nullptr, "./client.crt", "./client.key");
+    _mqtt.connect("localhost", 60);
+
+    _mqtt.regTopic("ALPR_TOPIC", std::bind(processPlateQuery, std::placeholders::_1, std::placeholders::_2));
+    _mqtt.subscribeTopic("ALPR_TOPIC", 0);
+
+    while (1)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+#else
     std::cout << "Listening\n";
     if ((TcpListenPort = OpenTcpListenPort(2222)) == NULL)  // Open UDP Network port
     {
@@ -105,8 +154,7 @@ int main()
 
 
     }
-
-
+#endif
 }
 
 

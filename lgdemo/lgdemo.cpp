@@ -11,7 +11,9 @@
 #include "motiondetector.h"
 #include "alpr.h"
 #include "DeviceEnumerator.h"
-
+#if defined(_USE_MQTT_)
+#include "mqtt.h"
+#endif
 
 using namespace alpr;
 using namespace std;
@@ -42,7 +44,11 @@ double _avgdur = 0;
 double _fpsstart = 0;
 double _avgfps = 0;
 double _fps1sec = 0;
+#if defined(_USE_MQTT_)
+mqtt _mqtt{};
+#else
 TTcpConnectedPort* TcpConnectedPort;
+#endif
 
 #define NUMBEROFPREVIOUSPLATES 10
 char LastPlates[NUMBEROFPREVIOUSPLATES][64]={"","","","",""};
@@ -60,6 +66,13 @@ static bool getconchar(KEY_EVENT_RECORD& krec);
 static double avgdur(double newdur);
 static double avgfps();
 static void GetResponses(void);
+
+void receivePlateQueryResult(void* msgBuf, int msgLen)
+{
+  char* ResponseString = reinterpret_cast<char*>(msgBuf);
+  printf("Response %s\n", ResponseString);
+}
+
 /***********************************************************************************/
 /* Main                                                                            */
 /***********************************************************************************/
@@ -81,13 +94,21 @@ int main()
 
     std::string county;
 
+#if defined(_USE_MQTT_)
+    //_mqtt.connect("112.220.105.114", 8883, 60);
+    _mqtt.secure(false, "./rootca.crt", nullptr, "./client.crt", "./client.key");
+    _mqtt.connect("localhost", 60);
 
+    _mqtt.regTopic("ALPR_TOPIC", std::bind(receivePlateQueryResult, std::placeholders::_1, std::placeholders::_2));
+    _mqtt.subscribeTopic("ALPR_TOPIC", 0);
+#else
     if ((TcpConnectedPort = OpenTcpConnection("127.0.0.1", "2222")) == NULL)
     {
         std::cout << "Connection Failed" << std::endl;
         return(-1);
     }
     else std::cout << "Connected" << std::endl;
+#endif
 
     county = "us";
 
@@ -193,13 +214,14 @@ int main()
         if (videosavemode != VideoSaveMode::vSaveWithNoALPR)
         {
             detectandshow(&alpr, frame, "", false);
+#if !defined(_USE_MQTT_)
             GetResponses();
+#endif
 
             cv::putText(frame, text,
                 cv::Point(10, frame.rows - 10), //top-left position
                 FONT_HERSHEY_COMPLEX_SMALL, 0.5,
                 Scalar(0, 255, 0), 0, LINE_AA, false);
-
         }
 
         // Write the frame into the file 'outcpp.avi'
@@ -278,7 +300,11 @@ static bool detectandshow(Alpr* alpr, cv::Mat frame, std::string region, bool wr
                 cv::Point(rect.x, rect.y-5), //top-left position
                 FONT_HERSHEY_COMPLEX_SMALL, 1,
                 Scalar(0, 255, 0), 0, LINE_AA, false);
+#if defined(_USE_MQTT_)
+            if (_mqtt.isConnected())
+#else
             if (TcpConnectedPort)
+#endif
             {
                 bool found = false;
                 for (int x = 0; x < NUMBEROFPREVIOUSPLATES; x++)
@@ -291,6 +317,10 @@ static bool detectandshow(Alpr* alpr, cv::Mat frame, std::string region, bool wr
                 }
                 if (!found)
                 {
+#if defined(_USE_MQTT_)
+                  SendPlateStringLength = (unsigned short)strlen(results.plates[i].bestPlate.characters.c_str()) + 1;
+                  _mqtt.publish("ALPR_TOPIC", results.plates[i].bestPlate.characters.c_str(), SendPlateStringLength, 0);
+#else
                     unsigned short SendMsgHdr;
                     SendPlateStringLength = (unsigned short)strlen(results.plates[i].bestPlate.characters.c_str())+1;
                     SendMsgHdr = htons(SendPlateStringLength);
@@ -298,6 +328,7 @@ static bool detectandshow(Alpr* alpr, cv::Mat frame, std::string region, bool wr
                         printf("WriteDataTcp %d\n", result);
                     if ((result = (int)WriteDataTcp(TcpConnectedPort, (unsigned char*)results.plates[i].bestPlate.characters.c_str(), SendPlateStringLength)) != SendPlateStringLength)
                         printf("WriteDataTcp %d\n", result);
+#endif
                     printf("sent ->%s\n", results.plates[i].bestPlate.characters.c_str());
                 }
             }
@@ -598,6 +629,7 @@ static VideoSaveMode GetVideoSaveMode(void)
 /***********************************************************************************/
 /* GetResponses                                                                    */
 /***********************************************************************************/
+#if !defined(_USE_MQTT_)
 static void GetResponses(void)
 {
  ssize_t BytesRead;
@@ -639,6 +671,7 @@ static void GetResponses(void)
      CloseTcpConnectedPort(&TcpConnectedPort);
  }
 }
+#endif
 /***********************************************************************************/
 /* End GetResponses                                                                */
 /***********************************************************************************/
