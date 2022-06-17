@@ -119,14 +119,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WINDOWS;NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\libs\libopenalpr;..\opencv\build\include;%(AdditionalIncludeDirectories);..\OpenCVDeviceEnumerator;..\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\libs\libopenalpr;..\opencv\build\include;%(AdditionalIncludeDirectories);..\OpenCVDeviceEnumerator;..\common;..\mosquitto\include</AdditionalIncludeDirectories>
       <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalOptions>/D "_USE_MQTT_" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\x64\Debug;..\opencv\build\x64\vc15\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world455d.lib;libtesseract-static.lib;ws2_32.lib;libopenalpr.lib;liblept-DLL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\x64\Debug;..\opencv\build\x64\vc15\lib;..\mosquitto\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world455d.lib;libtesseract-static.lib;ws2_32.lib;libopenalpr.lib;liblept-DLL.lib;mosquitto.lib;mosquittopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -149,6 +150,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\mqtt.cpp" />
     <ClCompile Include="..\common\NetworkTCP.cpp" />
     <ClCompile Include="..\libs\libopenalpr\statedetection\featurematcher.cpp" />
     <ClCompile Include="..\libs\libopenalpr\statedetection\line_segment.cpp" />
@@ -158,6 +160,7 @@
     <ClCompile Include="lgdemo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\mqtt.h" />
     <ClInclude Include="..\common\NetworkTCP.h" />
     <ClInclude Include="..\OpenCVDeviceEnumerator\DeviceEnumerator.h" />
   </ItemGroup>

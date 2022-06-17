@@ -31,6 +31,7 @@ bool lookupDB(char* PlateString, DBT& data)
   return dbp->get(dbp, NULL, &key, &data, 0) != DB_NOTFOUND;
 }
 
+#if defined(_USE_MQTT_)
 void processPlateQuery(void* msgBuf, int msgLen)
 {
   char* PlateString = reinterpret_cast<char*>(msgBuf);
@@ -43,6 +44,7 @@ void processPlateQuery(void* msgBuf, int msgLen)
     printf("sent ->%s\n", (char*)data.data);
   }
 }
+#endif
 
 int main()
 {
