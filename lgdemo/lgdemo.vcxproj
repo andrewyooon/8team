@@ -119,14 +119,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WINDOWS;NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\libs\libopenalpr;..\opencv\build\include;%(AdditionalIncludeDirectories);..\OpenCVDeviceEnumerator;..\common;..\mosquitto\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\libs\libopenalpr;..\opencv\build\include;%(AdditionalIncludeDirectories);..\OpenCVDeviceEnumerator;..\common;$(MOSQUITTO_DIR)\devel</AdditionalIncludeDirectories>
       <MinimalRebuild>true</MinimalRebuild>
       <AdditionalOptions>/D "_USE_MQTT_" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\x64\Debug;..\opencv\build\x64\vc15\lib;..\mosquitto\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\x64\Debug;..\opencv\build\x64\vc15\lib;$(MOSQUITTO_DIR)\devel;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opencv_world455d.lib;libtesseract-static.lib;ws2_32.lib;libopenalpr.lib;liblept-DLL.lib;mosquitto.lib;mosquittopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
