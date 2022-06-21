@@ -1,3 +1,8 @@
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding = 'utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding = 'utf-8')
+
 from faker import Faker
 from faker.generator import random
 from faker_vehicle import VehicleProvider
