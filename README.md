@@ -2,18 +2,17 @@
 
 
 
-# [Project Build Guide] - Need to be more automatical later.
+# [Project Build Guide] 
 1. Clone git source.
 `$ git clone https://github.com/andrewyooon/8team.git`
 
-2. Copy excluded sources and libs into the top path.
-`copy db-18.1.40, opencv into source top path`
+2. Download extra resources from NAS server.
+`download link : http://bonkab.com:8989/download/extend.zip`
 
-3. Process patch file.
+3. Move file(extend.zip) into the top path of source code and unzip in folder.
+
+4. Process patch file.
 `setup.bat`
-
-4. Copy mosquitto relative dll files.
-`copy mosquitto.dll, mosquitopp.dll, libssl-1_1-x64.dll, libcrypto-1_1-x64.dll`
 
 5. Build project.
 
