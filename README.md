@@ -17,8 +17,10 @@
 5. Build project.
 
 
+# [How to use Faker]
+1. TBD
 
-# [How to generate a new datafile using Faker]
+# [How to generate different size of datafile using Faker]
 1. ex, if you want to generate 10000-records into datafile.txt
  - Open faker/gen.py file.
  - Modify 11-th line like below.
